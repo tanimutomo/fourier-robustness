@@ -6,7 +6,7 @@ import hydra
 import numpy as np
 import torch
 import torchvision
-import tqdm
+from tqdm import tqdm
 
 from hydra import utils
 import torch.nn as nn
@@ -15,6 +15,7 @@ from torchvision import datasets, transforms
 from torchvision.utils import save_image
 
 from modules.models import ResNet56
+from modules.fourier import FourierBasisNoise
 from modules.misc import set_seed, unnormalize, extract_subset
 
 
@@ -49,7 +50,8 @@ def main(cfg):
     model.eval()
 
     # frequency noise
-    noiser = FourierBasisNoise()
+    noiser = FourierBasisNoise(cfg.eps, cfg.norm, cfg.data.mean,
+                               cfg.data.std, cfg.data.resol, device)
 
     # basis loop
     xs = list()
