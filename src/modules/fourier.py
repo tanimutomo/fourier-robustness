@@ -29,6 +29,14 @@ class FourierBasisNoise(object):
         else:
             raise ValueError()
 
+        # into image space
+        y_ = torch.clamp(x + d, 0, 1)
+        d = y_ - x
+        # normalize
+        y = self.normalize(x + d)
+
+        return y
+
     def sample_noise(self, x :Tensor, i :int, j :int) -> Tensor:
         z = torch.zeros_like(x)
         z[:, :, i, j] = torch.rand(3, device=self.device)

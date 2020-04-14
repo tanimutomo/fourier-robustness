@@ -16,7 +16,9 @@ from torchvision.utils import save_image
 
 from modules.models import ResNet56
 from modules.fourier import FourierBasisNoise
-from modules.misc import set_seed, unnormalize, extract_subset
+from modules.misc import (
+    set_seed, unnormalize, extract_subset, accuracy
+)
 
 
 @hydra.main(config_path='config/cifar10.yaml')
