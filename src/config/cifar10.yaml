@@ -11,6 +11,8 @@ gpu_ids:
 weight_path: ???
 seed: 12345567
 num_save_input: 1
+eps: 4
+norm: 2
 
 data:
   dataset: cifar10
