@@ -1,0 +1,31 @@
+hydra:
+  run:
+    dir: log/${experiment.name}
+
+defaults:
+  - experiment: ???
+
+arch: resnet56
+gpu_ids:
+  - 0
+weight_path: ???
+seed: 12345567
+num_save_input: 1
+
+data:
+  dataset: cifar10
+  root: /Users/tanimu/data
+  normalize: True
+  classes: null
+  batch_size: 1024
+  mean:
+    - 0.49139968
+    - 0.48215841
+    - 0.44653091
+  std:
+    - 0.24703223 
+    - 0.24348513 
+    - 0.26158784
+  resol: 32
+  num_classes: 10
+  num_samples: 1000
