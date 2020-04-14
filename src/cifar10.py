@@ -65,7 +65,7 @@ def main(cfg):
     xs = torch.stack(xs, axis=0)
     save_image(
         unnormalize(xs, cfg.data.mean, cfg.data.std),
-        f'input.png',
+        f'input.png', nrow=cfg.data.resol, padding=1,
     )
 
 
