@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 from typing import NewType
 
@@ -6,7 +7,7 @@ Tensor = NewType('Tensor', torch.FloatTensor)
 
 class FourierBasisNoise(object):
     def __init__(self, eps :int, norm :str, mean :list,
-                 std :list, resol :int, device :torch.device):
+                 std :list, device :torch.device):
         self.eps = eps
         self.norm = norm
         self.device = device
@@ -14,6 +15,10 @@ class FourierBasisNoise(object):
         self.unnormalize = Unnormalize(mean, std, device)
 
     def __call__(self, x :Tensor, i :int, j :int) -> Tensor:
+        assert x.ndim == 4
+        B, C, H, W = x.shape
+        assert C == 3 and H == W
+
         # unnormalize
         x = self.unnormalize(x)
         # sample fourier noise
@@ -21,13 +26,18 @@ class FourierBasisNoise(object):
         
         # norm constraint
         if str(self.norm) == 'inf':
-            d *= self.eps / 255
+            d = batch_standadize(d) * 2 - 1
+            d *= self.eps
         elif str(self.norm) == '2':
-            norm_d = torch.norm(d.view(d.shape[0], -1), 2, dim=1)
-            d /= norm_d[:, None, None, None] + 1e-12
-            d *= self.eps / 255
+            # Compute fourier basis norm for each channel
+            d_norm = torch.norm(d.view(B, -1), 2, dim=1)
+            d /= d_norm.view(B, 1, 1, 1) + 1e-12
+            d *= np.sqrt(self.eps**2 * C * H * W)
         else:
             raise ValueError()
+
+        # into [0, 1]
+        d /= 255
 
         # into image space
         y_ = torch.clamp(x + d, 0, 1)
@@ -38,11 +48,12 @@ class FourierBasisNoise(object):
         return y
 
     def sample_noise(self, x :Tensor, i :int, j :int) -> Tensor:
+        B, C, H, W = x.shape
         z = torch.zeros_like(x)
-        z[:, :, i, j] = torch.rand(3, device=self.device)
+        z[..., i, j] = torch.rand(B, C, device=self.device)
         z = zshift(torch.stack([z, z], dim=-1))
         d = torch.ifft(z, 2)[..., 0]
-        return batch_standadize(d) * 2 - 1
+        return d
 
 
 class Normalize(object):
