@@ -2,4 +2,4 @@ hydra:
   run:
     dir: log/_
   
-# experiment: debug
+experiment: debug

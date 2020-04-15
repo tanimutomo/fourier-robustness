@@ -65,7 +65,7 @@ def main(cfg):
         for i in range(cfg.data.resol):
             for j in range(cfg.data.resol):
                 acc, sx = test(device, model, loader, noiser, i, j)
-                err_map[i, j] = 100 - acc
+                err_map[i, j] = 1 - acc / 100.0
                 xs.append(sx)
 
                 # report the training status
@@ -96,7 +96,7 @@ def test(device, model, loader, noiser, i, j):
 
             acc_sum += acc
             num_iter += 1
-            if itr == 0: save_x = x[0].detach()
+            if itr == 0: save_x = x[0].cpu().detach()
 
     return acc / num_iter, save_x
 
