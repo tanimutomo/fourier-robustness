@@ -1,3 +1,5 @@
 hydra:
   run:
-    dir: log/${weight_path}
+    dir: log/${weight}
+  
+experiment: save

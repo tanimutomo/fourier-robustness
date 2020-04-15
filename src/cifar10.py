@@ -47,7 +47,7 @@ def main(cfg):
 
     # model
     model = ResNet56()
-    weight_path = os.path.join(utils.get_original_cwd(), cfg.weight_path)
+    weight_path = os.path.join(utils.get_original_cwd(), 'weights', cfg.weight)
     model.load_state_dict(torch.load(weight_path, map_location='cpu'))
     model.to(device)
     if len(cfg.gpu_ids) > 1:
@@ -56,21 +56,22 @@ def main(cfg):
 
     # frequency noise
     noiser = FourierBasisNoise(cfg.eps, cfg.norm, cfg.data.mean,
-                               cfg.data.std, cfg.data.resol, device)
+                               cfg.data.std, device)
 
     # basis loop
-    acc_matrix = torch.zeros(cfg.data.resol, cfg.data.resol)
+    err_map = torch.ones(cfg.data.resol, cfg.data.resol)
     xs = list()
     with tqdm(total=cfg.data.resol**2, ncols=80) as pbar:
         for i in range(cfg.data.resol):
             for j in range(cfg.data.resol):
                 acc, sx = test(device, model, loader, noiser, i, j)
-                acc_matrix[i, j] = acc
+                err_map[i, j] = 100 - acc
                 xs.append(sx)
 
                 # report the training status
-                pbar.set_postfix_str(f'{i}-{j}:{acc:.2f}')
+                pbar.set_postfix_str(f'{i}-{j}:{100-acc:.2f}')
                 pbar.update()
+            if cfg.experiment == 'debug': break
 
     # save input images
     xs = torch.stack(xs, axis=0)
@@ -79,7 +80,7 @@ def main(cfg):
         f'input.png', nrow=cfg.data.resol, padding=1,
     )
     # save accuracy matrix
-    save_fouriermap(acc_matrix)
+    save_fouriermap(err_map)
 
 
 def test(device, model, loader, noiser, i, j):
@@ -101,7 +102,7 @@ def test(device, model, loader, noiser, i, j):
 
 
 def is_config_valid(cfg):
-    assert cfg.weight_path
+    assert cfg.weight
 
     print(cfg.pretty())
 

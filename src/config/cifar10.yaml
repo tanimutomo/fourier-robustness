@@ -4,10 +4,10 @@ defaults:
 arch: resnet56
 gpu_ids:
   - 0
-weight_path: ???
+weight: ???
 seed: 12345567
 num_save_input: 1
-eps: 221.7025 # per pixel
+eps: 16 # per pixel
 norm: 2
 
 data:
