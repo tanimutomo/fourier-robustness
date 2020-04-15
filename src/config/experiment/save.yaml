@@ -1,5 +1,5 @@
 hydra:
   run:
-    dir: log/${weight}
+    dir: log/${weight}_norm=${norm}_eps=${eps}
   
 experiment: save

@@ -7,7 +7,7 @@ gpu_ids:
 weight: ???
 seed: 12345567
 num_save_input: 1
-eps: 16 # per pixel
+eps: 16
 norm: 2
 
 data:

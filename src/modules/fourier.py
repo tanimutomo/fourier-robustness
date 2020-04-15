@@ -32,12 +32,12 @@ class FourierBasisNoise(object):
             # Compute fourier basis norm for each channel
             d_norm = torch.norm(d.view(B, -1), 2, dim=1)
             d /= d_norm.view(B, 1, 1, 1) + 1e-12
-            d *= np.sqrt(self.eps**2 * C * H * W)
+            d *= np.sqrt((self.eps/255)**2 * C * H * W)
         else:
             raise ValueError()
 
         # into [0, 1]
-        d /= 255
+        # d /= 255
 
         # into image space
         y_ = torch.clamp(x + d, 0, 1)
