@@ -1,2 +1,3 @@
-experiment:
-  name: _
+hydra:
+  run:
+    dir: log/_

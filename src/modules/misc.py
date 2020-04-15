@@ -1,5 +1,8 @@
 import random
 
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
@@ -47,3 +50,21 @@ def accuracy(output, target, topk=(1,5)):
             return acc[0]
         else:
             return acc
+
+
+def save_fouriermap(mat :torch.FloatTensor) -> None:
+    plt.figure(figsize=(12, 12))
+    plt.rcParams['font.size'] = 18
+
+    plt.imshow(mat.numpy(), cmap=plt.get_cmap('jet'))
+    plt.clim(0.0, 1.0)
+    plt.colorbar(shrink=0.67)
+
+    plt.subplots_adjust(left=0.05, right=1.05, top=1.1, bottom=-0.1)
+    plt.tick_params(
+        bottom=False, labelbottom=False,
+        left=False, labelleft=False,
+        right=False, labelright=False,
+        top=False, labeltop=False,
+    )
+    plt.savefig('fouriermap.png')

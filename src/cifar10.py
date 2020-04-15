@@ -10,6 +10,7 @@ from tqdm import tqdm
 
 from hydra import utils
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
@@ -17,7 +18,8 @@ from torchvision.utils import save_image
 from modules.models import ResNet56
 from modules.fourier import FourierBasisNoise
 from modules.misc import (
-    set_seed, unnormalize, extract_subset, accuracy
+    set_seed, unnormalize, extract_subset, accuracy,
+    save_fouriermap,
 )
 
 
@@ -40,7 +42,8 @@ def main(cfg):
         train=False, transform=transform
     )
     dataset = extract_subset(dataset, cfg.data.num_samples, False)
-    loader = DataLoader(dataset, batch_size=cfg.data.batch_size, shuffle=False, num_workers=4)
+    loader = DataLoader(dataset, batch_size=cfg.data.batch_size,
+                        shuffle=False, num_workers=4)
 
     # model
     model = ResNet56()
@@ -56,23 +59,31 @@ def main(cfg):
                                cfg.data.std, cfg.data.resol, device)
 
     # basis loop
+    acc_matrix = torch.zeros(cfg.data.resol, cfg.data.resol)
     xs = list()
     with tqdm(total=cfg.data.resol**2, ncols=80) as pbar:
         for i in range(cfg.data.resol):
             for j in range(cfg.data.resol):
-                acc_sum, sx = test(device, model, loader, noiser, i, j)
-                acc = acc_sum / cfg.data.num_samples
+                acc, sx = test(device, model, loader, noiser, i, j)
+                acc_matrix[i, j] = acc
                 xs.append(sx)
 
+                # report the training status
+                pbar.set_postfix_str(f'{i}-{j}:{acc:.2f}')
+                pbar.update()
+
+    # save input images
     xs = torch.stack(xs, axis=0)
     save_image(
         unnormalize(xs, cfg.data.mean, cfg.data.std),
         f'input.png', nrow=cfg.data.resol, padding=1,
     )
+    # save accuracy matrix
+    save_fouriermap(acc_matrix)
 
 
 def test(device, model, loader, noiser, i, j):
-    acc_sum, num_samples = 0, 0
+    acc_sum, num_iter = 0, 0
     with torch.no_grad():
         for itr, (x, y) in enumerate(loader):
             x, y = x.to(device), y.to(device)
@@ -83,14 +94,13 @@ def test(device, model, loader, noiser, i, j):
             acc, _ = accuracy(z, y, topk=(1, 5))
 
             acc_sum += acc
+            num_iter += 1
             if itr == 0: save_x = x[0].detach()
 
-    return acc_sum, save_x
+    return acc / num_iter, save_x
 
 
 def is_config_valid(cfg):
-    if cfg.experiment == 'save':
-        assert cfg.experiment.prefix
     assert cfg.weight_path
 
     print(cfg.pretty())

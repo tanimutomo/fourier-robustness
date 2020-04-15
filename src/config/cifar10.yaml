@@ -1,7 +1,3 @@
-hydra:
-  run:
-    dir: log/${experiment.name}
-
 defaults:
   - experiment: ???
 
@@ -11,12 +7,12 @@ gpu_ids:
 weight_path: ???
 seed: 12345567
 num_save_input: 1
-eps: 4
+eps: 221.7025 # per pixel
 norm: 2
 
 data:
   dataset: cifar10
-  root: /Users/tanimu/data
+  root: /home/tanimu/data
   normalize: True
   classes: null
   batch_size: 1024
